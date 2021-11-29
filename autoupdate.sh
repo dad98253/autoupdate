@@ -25,7 +25,7 @@ function cleanup {
     else
         echo "Failed to remove lock directory '$LOCKDIR'"
         echo "Failed to remove lock directory '$LOCKDIR'" | logger
-    	echo "Failed to remove lock directory '$LOCKDIR'" | mail -s "autoupdate problem" john.c.kuras@gmail.com
+    	echo "Failed to remove lock directory '$LOCKDIR'" | mail -s "autoupdate problem" $myemail
         exit 1
     fi
 }
@@ -139,7 +139,7 @@ exit 0
 else
     echo "Could not create lock directory '$LOCKDIR'"
     echo "Could not create lock directory '$LOCKDIR'" | logger
-    echo "Could not create lock directory '$LOCKDIR'" | mail -s "autoupdate problem" john.c.kuras@gmail.com
+    echo "Could not create lock directory '$LOCKDIR'" | mail -s "autoupdate problem" $myemail
     exit 1
 fi
 
