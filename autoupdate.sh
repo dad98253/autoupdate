@@ -107,6 +107,14 @@ echo clean | logger
 apt-get clean -y
 echo autoremove | logger
 apt-get autoremove -y
+# check if a reboot is required - if so, tripwire will need another update after
+# (may work for red hat?) needs-restarting  -r ; if [ "$?" = 1 ]; then
+if [ -f /var/run/reboot-required ]; then
+  echo 'reboot required'
+  echo 'reboot required' | logger
+# the following line only works for debian based  
+  cat /var/run/reboot-required.pkgs | mail -s "reboot required - re-update tripwire after" $myemail
+fi
 # update the tripwire database
 echo "update tripwire files" | logger
 #remove all old reports
