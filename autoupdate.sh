@@ -17,6 +17,10 @@ umask 027
 
 # Option to skip initial tripwire test
 declare -i -g dotrip=1
+# Option to activate debug logging
+declare -i -g dodebug=0
+# Option to keep old report files
+declare -i -g dokeep=0
 
 #Remove the lock directory
 function cleanup {
@@ -43,13 +47,21 @@ Synopsis
     -s
         Skip the initial tripwire check.
 
+    -d
+        Log debug information.
+
+    -k
+        Keep copies of the old tripwire report files.
+
 EOF
 }
 
 # Options.
-while getopts ":s" option; do
+while getopts ":sdk" option; do
 	case "$option" in
             s) dotrip=0 ;;
+            d) dodebug=1 ;;
+            k) dokeep=1 ;;
             *) printUsage; exit 1 ;;
 	esac
 done
@@ -118,12 +130,28 @@ fi
 # update the tripwire database
 echo "update tripwire files" | logger
 #remove all old reports
+if [[ $dokeep -eq 0 ]]; then
+#list removed reports to syslog
+if [[ $dodebug -eq 1 ]]; then
+rm -v /var/lib/tripwire/report/* | logger
+else
 rm -v /var/lib/tripwire/report/*
+fi
 rm -v /tmp/*.tripwire.txt
 echo "Old tripwire reports purged"
 echo "Old tripwire reports purged" | logger
+# end of keep report if - then
+fi
 # generate a report of the changes
+if [[ $dodebug -eq 1 ]]; then
+$tripwirecheck $tripwiretext $tripwirereport | logger
+else
 $tripwirecheck $tripwiretext $tripwirereport
+fi
+if [ "$?" = "0" ]; then
+echo "Tripwire files unchanged"
+echo "Tripwire files unchanged" | logger
+else
 echo "Tripwire report updated"
 echo "Tripwire report updated" | logger
 # find the report we just created	
@@ -135,6 +163,7 @@ tripwire --update --silent --accept-all --twrfile /var/lib/tripwire/report/$last
 #tripwire --update         --accept-all --twrfile /var/lib/tripwire/report/$last_report -P $tripwire_local_password
 echo "Tripwire database updated"
 echo "Tripwire database updated" | logger
+fi
 echo "tripwire update complete" | logger
 else
   echo "tripwire failed!" 1>&2
