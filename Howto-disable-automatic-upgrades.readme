@@ -1,0 +1,57 @@
+To disable automatic updates/upgrades, etc. :
+
+Popularity contest is disabled by default. You can check and disable it with:
+
+dpkg-reconfigure popularity-contest 
+
+You can also do ...
+
+apt remove --purge popularity-contest
+
+to remove it.
+
+Disable apt-daily.service:
+
+systemctl stop apt-daily.timer
+systemctl disable apt-daily.timer
+systemctl disable apt-daily.service
+systemctl stop apt-daily-upgrade.timer
+systemctl disable apt-daily-upgrade.timer
+systemctl disable apt-daily-upgrade.service
+
+One-liner from @muru <3:
+
+systemctl disable --now apt-daily{,-upgrade}.{timer,service}
+
+Disable unattended upgrade:
+
+dpkg-reconfigure -plow unattended-upgrades
+
+Update manager can only be stopped by removing it:
+
+apt purge update-manager-core
+
+You can NOT disable automatic update for snaps. You can set the period when it updates with snap set core refresh.schedule=<spec> but the system will ignore this is if it took too long to update snaps and that would be within 24 hours. This will remove anything snap related:
+
+apt purge snapd ubuntu-core-launcher squashfs-tools
+
+A less intrusive method would be to prevent connection to the server by adding a DENY to your firewall rules (or in the router). To disable the systemd service would be ...
+
+systemctl disable snapd.refresh.service
+
+but that too seems to ignore the 24 hour period.
+
+Regarding snaps:
+
+    The agreed semantics to be implemented are the following:
+
+        Refreshes may be scheduled at an arbitrary weekday and time within the month (e.g. second Tuesday between 1pm and 2pm).
+        Refreshes may be deferred for up to another month so that missed windows and re-scheduling may happen without strange side effects. For example, if it was scheduled for the first day, and then gets scheduled for the end of the month just before it happens, there may effectively be a two months window without refreshes.
+        If the system remains out-of-date after the two months window, the system will start attempting to refresh out of the window.
+        That maximum window is reset every time the system is refreshed, so out-of-band updates may performed at a convenient maintenance window.
+
+So a window of 2 months is possible if you do not reboot.
+
+I do disagree with your way of thinking though. Except for contest (and that one is not active) all of these are about fixing bugs and providing better content. You will make your system LESS secure by disabling these options.
+
+
