@@ -148,16 +148,16 @@ $tripwirecheck $tripwiretext $tripwirereport | logger
 else
 $tripwirecheck $tripwiretext $tripwirereport
 fi
-if [ "$?" = "0" ]; then
+# find the report we just created	
+last_report=`ls -t /var/lib/tripwire/report | head -n 1`
+echo "New report is '$last_report'"
+echo "New report is '$last_report'" | logger
+if [ "$last_report" = "" ]; then
 echo "Tripwire files unchanged"
 echo "Tripwire files unchanged" | logger
 else
 echo "Tripwire report updated"
 echo "Tripwire report updated" | logger
-# find the report we just created	
-last_report=`ls -t /var/lib/tripwire/report | head -n 1`
-echo "New report is '$last_report'"
-echo "New report is '$last_report'" | logger
 # accept all changes and generate new database file
 tripwire --update --silent --accept-all --twrfile /var/lib/tripwire/report/$last_report -P $tripwire_local_password
 #tripwire --update         --accept-all --twrfile /var/lib/tripwire/report/$last_report -P $tripwire_local_password
