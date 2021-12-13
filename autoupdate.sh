@@ -97,9 +97,6 @@ if mkdir $LOCKDIR 2>/dev/null; then
 #if ["$hostroot" != "$targethost"]; then
 #exit 2
 #fi
-today=`date +%Y-%m-%d.%H:%M:%S`
-tripwiretext=/tmp/$hostroot.$today.tripwire.txt
-tripwirereport=/var/lib/tripwire/report/$hostroot.$today.tripwire.twr
 OS_PROBER_DISABLE_DEBUG=true
 export OS_PROBER_DISABLE_DEBUG
 
@@ -134,24 +131,29 @@ if [[ $dokeep -eq 0 ]]; then
 #list removed reports to syslog
 if [[ $dodebug -eq 1 ]]; then
 rm -v /var/lib/tripwire/report/* | logger
+rm -v /tmp/*.tripwire.txt | logger
 else
 rm -v /var/lib/tripwire/report/*
-fi
 rm -v /tmp/*.tripwire.txt
+fi
 echo "Old tripwire reports purged"
 echo "Old tripwire reports purged" | logger
 # end of keep report if - then
 fi
 # generate a report of the changes
-if [[ $dodebug -eq 1 ]]; then
-$tripwirecheck $tripwiretext $tripwirereport | logger
-else
-$tripwirecheck $tripwiretext $tripwirereport
-fi
+today=`date +%Y-%m-%d.%H:%M:%S`
+tripwiretext=/tmp/$hostroot.$today.tripwire.txt
+tripwirereport=/var/lib/tripwire/report/$hostroot.$today.tripwire.twr
+$tripwirecheck $tripwiretext $tripwirereport $dodebug
 # find the report we just created	
 last_report=`ls -t /var/lib/tripwire/report | head -n 1`
+last_temp=`ls -t /tmp/*.tripwire.txt | head -n 1`
 echo "New report is '$last_report'"
 echo "New report is '$last_report'" | logger
+if [[ $dodebug -eq 1 ]]; then
+echo "Last temp is '$last_temp'"
+echo "Last temp is '$last_temp'" | logger
+fi
 if [ "$last_report" = "" ]; then
 echo "Tripwire files unchanged"
 echo "Tripwire files unchanged" | logger
